@@ -42,7 +42,17 @@ All HallC run condition databases are updated with schema v2 and can now use the
   More information on the commandline tool can be found from: https://github.com/JeffersonLab/rcdb/wiki/rcnd
   
 -----------------------------
+## List of HallA/C databases
+| DB name | Experiments |
+| --- | --- |
+| prex2 | PREX2 and CREX |
+| nps | NPS |
+| lad | LAD |
+| rsidis | R-SIDIS |
 
+The SQL dump files as well as SQLite databases for the past experiments can be found from databases folder. 
+
+-----------------------------
 ## Notes:
 ### RCDB submodule
   - rcdb package (https://github.com/JeffersonLab/rcdb) is added as submodule with a specific tag. This release version is a rather old one, but for now keep it as it is. 
@@ -56,3 +66,4 @@ All HallC run condition databases are updated with schema v2 and can now use the
 ### DB GUI for users
   #### RCDB EDIT
   rcdb_edit.py: this gui allows one to update run type, comment and flag the run.
+
