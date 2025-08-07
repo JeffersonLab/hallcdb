@@ -1,6 +1,29 @@
 # Hall C RCDB
 
-## Setting up from scratch
+## Setting up
+All HallC run condition databases are updated with schema v2 and can now use the rcdb python library (https://pypi.org/project/rcdb/)
+1) Install rcdb if not done already
+  ```
+  pip install rcdb
+  ```
+2) Set environment variable for connection strings
+  ```
+  setenv RCDB_CONNECTION mysql://rcdb@hallcdb.jlab.org/<database name> (csh, tcsh)
+  export RCDB_CONNECTION=mysql://rcdb@hallcdb.jlab.org/<database name> (bash, zsh)
+  ```
+  If using SQLite databases, valid SQLite URL forms are:
+  ```
+  sqlite:///:memory: (or, sqlite://)
+  sqlite:///relative/path/to/file.db
+  sqlite:////absolute/path/to/file.db
+  ```
+3) Check if things are set properly using the command line tools. For example,
+  ```
+  rcdb 
+  ```
+  This will print out a summary about the database contents. For more information on the CLI, see https://jeffersonlab.github.io/rcdb/#/rcdb-cli
+
+## Setting up from scratch (with old schema v1)
 1) Clone this repository
   ```
   git clone https://github.com/JeffersonLab/hallcdb
