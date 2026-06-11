@@ -3,9 +3,9 @@
 Deploy + configuration files for serving the **Hall C Run Conditions
 Database** (`rcdb` web app) from **crcdb.org**.
 
-A server-rendered Flask app (`rcdb.web`) run under Gunicorn behind nginx. All
-run-condition data is read live from the Hall C **MariaDB** server at
-`hallcdb.jlab.org`.
+The app is server-rendered Flask (`rcdb.web`), run under Gunicorn and
+reverse-proxied by nginx. All run-condition data is read live from the Hall C
+**MariaDB** server at `hallcdb.jlab.org`.
 
 ## Architecture
 
@@ -17,34 +17,36 @@ flowchart LR
     flask -->|mysql+pymysql<br/>read-only user 'rcdb'| db[(MariaDB<br/>hallcdb.jlab.org<br/>rsidis · prex2 · nps · lad)]
 ```
 
-- nginx listens on **:80** and proxies every request to Gunicorn on
-  **127.0.0.1:5455**. Terminate TLS at nginx (see `nginx-crcdb-https`) or at an
-  upstream proxy.
-- The app connects to MariaDB via the `mysql+pymysql` driver as the read-only
-  `rcdb` user (no password), so there are no secrets to manage.
+- nginx listens on **:80** and reverse-proxies every request to Gunicorn on
+  **127.0.0.1:5455**. Terminate TLS either at nginx (see `nginx-crcdb-https`)
+  or at an upstream proxy/load balancer.
+- The rcdb app connects to MariaDB over the SQLAlchemy `mysql+pymysql` driver
+  as the read-only `rcdb` user (no password), so there are no secrets to
+  manage.
 
 ## Files in this repo
 
 | File | Purpose |
 | --- | --- |
 | `test_index.html` | Static placeholder page for Step 1. |
-| `nginx-crcdb-test` | nginx site for Step 1 (serves the static page only). |
-| `nginx-crcdb` | nginx site for Step 2 (reverse-proxies to the rcdb Gunicorn app on :80). |
-| `nginx-crcdb-https` | Alternative Step 2 site that also terminates TLS on :443 (e.g. with a Let's Encrypt cert). |
-| `wsgi_crcdb.py` | WSGI entry point; configures `rcdb.web.app` against the MariaDB databases. |
+| `nginx-crcdb-test` | nginx site for test (static pages only) |
+| `nginx-crcdb` | nginx site with reverse-proxies to the rcdb Gunicorn app on :80 |
+| `wsgi_crcdb.py` | WSGI entry point; configures `rcdb.web.app` |
 | `crcdb.service` | systemd unit running Gunicorn (gthread worker) for the rcdb app. |
 | `nginx-systemd-override.conf` | Drop-in so nginx auto-restarts on failure (resilience). |
 
 > The `firebird` user has **no sudo**; the privileged steps below (apt, `/opt`,
-> systemd, nginx) must be run by a sudo-capable account. There are **no
-> secrets** to configure — the `rcdb` user is read-only with no password.
+> systemd, nginx) must be run by a sudo-capable account.
+>
+> There are **no secrets** to configure: the `rcdb` MariaDB user is read-only
+> with no password, and the app has no login, so nothing sensitive is stored.
 
 ---
 
 # Step 1 — static test page at crcdb.org
 
-Confirm DNS → nginx routing works before introducing the WSGI app. The repo
-lives at `/home/firebird/hallcdb/crcdb-deploy`.
+Goal: confirm DNS → nginx routing works before introducing the WSGI app. The
+repo lives at `/home/firebird/hallcdb/crcdb-deploy`.
 
 ```bash
 # 1. Create the document root and install the test page
@@ -131,12 +133,13 @@ PYTHONPATH=/opt/crcdb gunicorn --bind 127.0.0.1:5455 \
 > **About `WORKER TIMEOUT ... (no URI read)`** — if you run gunicorn with the
 > *default* sync worker and poke it from a browser, you'll see periodic
 > `[CRITICAL] WORKER TIMEOUT` with an `Error handling request (no URI read)`
-> traceback. This is **not** an app error — the page renders fine. A sync worker
-> blocks in `recv()` on an *idle* keep-alive / preconnect socket — no request
-> ever arrives ("no URI read") — and the master reaps it at the timeout. The
-> `gthread` worker used above and in `crcdb.service` fixes this by parking idle
-> connections on a thread while the heartbeat keeps ticking. It's moot behind
-> nginx anyway, which closes the upstream connection after each request.
+> traceback. This is **not** an app error: the page renders fine. A sync worker
+> blocks in `recv()` on an *idle* keep-alive / browser-preconnect socket — no
+> request ever arrives ("no URI read") — and the master reaps it at the
+> timeout. The `gthread` worker class used above and in `crcdb.service` fixes
+> this: idle connections are parked on a thread while the heartbeat keeps
+> ticking. Behind nginx it's mostly moot anyway, since nginx closes the
+> upstream connection after each request.
 
 ### 2d. systemd service
 
@@ -233,8 +236,8 @@ tail -n 50 /var/log/crcdb/error.log
       pymysql.connect(host='hallcdb.jlab.org', user='rcdb').close(); print('OK')"
   ```
 
-  If the port is filtered, the DB server is only reachable from its own network
-  — run crcdb on a host with access, or arrange a tunnel.
+  If the port is filtered, the database server is only reachable from within
+  its own network — run crcdb on a host that has access, or arrange a tunnel.
 
 ### nginx 502 / 504
 
