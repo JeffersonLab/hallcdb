@@ -1,0 +1,40 @@
+[Unit]
+Description=Hall C RCDB Gunicorn Service (crcdb.org)
+After=network.target
+
+[Service]
+User=firebird
+Group=firebird
+WorkingDirectory=/opt/crcdb
+
+# The WSGI entry module lives at /opt/crcdb/wsgi_crcdb.py (a copy of
+# crcdb-deploy/wsgi_crcdb.py). PYTHONPATH must include /opt/crcdb so
+# Gunicorn can import it by name.
+Environment=PYTHONPATH=/opt/crcdb
+
+# The app only reads its config and the MariaDB server; it writes nothing but logs.
+ReadOnlyPaths=/opt/crcdb/wsgi_crcdb.py
+ReadWritePaths=/var/log/crcdb
+
+# gthread worker class (not the default sync): a sync worker blocks in
+# recv() on idle keep-alive / browser-preconnect sockets and gets reaped by
+# the master ("WORKER TIMEOUT ... no URI read"). gthread hands idle/slow
+# connections to a thread while the main thread keeps the heartbeat, so it
+# does not get falsely timed out. Verified: a gthread worker survives an idle
+# keep-alive connection held well past the timeout with zero WORKER TIMEOUTs.
+ExecStart=/opt/crcdb/venv/bin/python -m gunicorn \
+    --worker-class gthread \
+    --workers 2 \
+    --threads 4 \
+    --bind 127.0.0.1:5455 \
+    --timeout 120 \
+    --access-logfile /var/log/crcdb/access.log \
+    --error-logfile /var/log/crcdb/error.log \
+    --capture-output \
+    wsgi_crcdb:application
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
