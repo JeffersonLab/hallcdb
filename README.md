@@ -23,24 +23,6 @@ All HallC run condition databases are updated with schema v2 and can now use the
   ```
   This will print out a summary about the database contents. For more information on the CLI, see https://jeffersonlab.github.io/rcdb/#/rcdb-cli
 
-## Setting up from scratch (with old schema v1)
-1) Clone this repository
-  ```
-  git clone https://github.com/JeffersonLab/hallcdb
-  ```
-2) Set environment variables. Modify setup.csh script as needed. You will most likely need to update the first two variables to adjust the path.
-  Once it's done, 
-  ```
-  > cd hallcdb
-  > source setup.csh
-  ```
-3) Check if things are set properly. For example, type:
-  ```
-  > rcnd
-  ```
-  This should show the list of condition types. </br>
-  More information on the commandline tool can be found from: https://github.com/JeffersonLab/rcdb/wiki/rcnd
-  
 -----------------------------
 ## List of HallA/C databases
 | DB name | Experiments |
@@ -49,13 +31,16 @@ All HallC run condition databases are updated with schema v2 and can now use the
 | nps | NPS |
 | lad | LAD |
 | rsidis | R-SIDIS |
+| pionct | PionCT |
+| xem2 | XEM2 |
+| at | nucAT |
 
 The SQL dump files as well as SQLite databases for the past experiments can be found from databases folder. 
 
 -----------------------------
 ## Notes:
 ### RCDB submodule
-  - rcdb package (https://github.com/JeffersonLab/rcdb) is added as submodule with a specific tag. This release version is a rather old one, but for now keep it as it is. 
+  - rcdb package (https://github.com/JeffersonLab/rcdb) is added as submodule with a specific tag. This release version is a rather old one. This was used with old schema v1.
 ### Connection string:
   - For updating DB entries: Master DB should be only used when making DB entries by start/end run scripts from cdaq machines. On cdaq computers, RCDB environment is set when login, and the connection string is set to the master database.
   - Please use the read-only copy otherwise:
@@ -66,4 +51,4 @@ The SQL dump files as well as SQLite databases for the past experiments can be f
 ### DB GUI for users
   #### RCDB EDIT
   rcdb_edit.py: this gui allows one to update run type, comment and flag the run.
-
+  

@@ -183,6 +183,8 @@ in `wsgi_crcdb.py`):
 | `prex2`  | `prex2`  | PREX2/CREX |
 | `nps`    | `nps`    | NPS production |
 | `lad`    | `lad`    | LAD |
+| `xem2`    | `xem2`    | XEM2 |
+| `pionct`    | `pionct`    | pionCT |
 
 Only **v2-schema** databases are supported (the bundled rcdb library is
 v2-only). To change the list, default, host, or user, edit
