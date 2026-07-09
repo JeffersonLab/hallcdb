@@ -17,6 +17,8 @@ AVAILABLE_DATABASES = {
     "nps":    "mysql+pymysql://rcdb@hallcdb.jlab.org/nps",
     "lad":    "mysql+pymysql://rcdb@hallcdb.jlab.org/lad",
     "vcs":    "mysql+pymysql://rcdb@hallcdb.jlab.org/vcs",
+    "xem2":   "mysql+pymysql://rcdb@hallcdb.jlab.org/xem2",
+    "pionct": "mysql+pymysql://rcdb@hallcdb.jlab.org/xem2",
 }
 
 # Database shown on first visit (must be one of the values above).
