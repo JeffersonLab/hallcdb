@@ -246,6 +246,44 @@ tail -n 50 /var/log/crcdb/error.log
 Gunicorn isn't answering on `127.0.0.1:5455`. Confirm the service is up
 (`sudo systemctl status crcdb`) and listening (`ss -ltnp | grep 5455`).
 
+## Update log
+
+### 2026-07-19 — rcdb submodule → v2.4.0, xem2/pionct enabled
+
+- **rcdb submodule** bumped `v2.3.3` → **`v2.4.0`** (editable install; reinstalled
+  with `pip install -e`).
+- **`xem2` / `pionct`** re-enabled in `wsgi_crcdb.py`. They had been commented
+  out on 2026-07-10 because the read-only `rcdb` MariaDB user lacked grants
+  (errno 1044). The DBA has since granted access — verified all 7 DBs connect —
+  so both selectors are live again (`pionct` → its own `pionct` DB).
+
+```bash
+cd /home/firebird/hallcdb/rcdb && git checkout v2.4.0 && cd -
+/opt/crcdb/venv/bin/pip install -e /home/firebird/hallcdb/rcdb/python
+cp /home/firebird/hallcdb/crcdb-deploy/wsgi_crcdb.py /opt/crcdb/wsgi_crcdb.py
+sudo systemctl restart crcdb   # needs sudo; no server reboot required
+```
+
+### 2026-07-10 — rcdb submodule → v2.3.3
+
+The `xem2` / `pionct` DB-list change came in via git (upstream commits
+`19dc2a1` + `4d7f084`, already reflected in the Databases table above). The one
+thing **not** carried by any hallcdb commit is the rcdb submodule bump: it was
+moved from `v2.2.10-24-gf33166b` to tag **`v2.3.3`** (website fixes + CLI /
+select-values work). rcdb is an *editable* install and v2.3.3 added no new
+required runtime deps, so updating is:
+
+```bash
+cd /home/firebird/hallcdb && git pull --ff-only origin main   # DB-list + README
+cd rcdb && git checkout v2.3.3 && cd -                         # submodule → tag
+/opt/crcdb/venv/bin/pip install -e /home/firebird/hallcdb/rcdb/python
+cp /home/firebird/hallcdb/crcdb-deploy/wsgi_crcdb.py /opt/crcdb/wsgi_crcdb.py
+sudo systemctl restart crcdb                                   # needs sudo
+```
+
+> Note: upstream commit `19dc2a1` mapped `pionct` to the `xem2` database by
+> mistake; fixed here so `pionct` points at its own `pionct` database.
+
 ## Rollback
 
 ```bash
